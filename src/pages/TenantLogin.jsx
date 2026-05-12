@@ -47,9 +47,8 @@ export function TenantLogin() {
       // redirect is handled by the useEffect watching [authChecked, user]
     } catch (err) {
       if (err?.status === 403 && err?.data?.error_code === 'EMAIL_NOT_VERIFIED') {
-        try { await api.requestOtp(email) } catch {}
         setFindInitialEmail(email)
-        setFindInitialStep(2)
+        setFindInitialStep(0)
         setFindOpen(true)
       } else if (err?.status === 403) {
         navigate('/pending')
