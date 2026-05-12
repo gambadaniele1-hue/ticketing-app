@@ -10,6 +10,7 @@ import { useAuth } from '../context/AuthContext'
 import { api } from '../lib/api'
 import { tokens } from '../lib/tokens'
 import { FindWorkspaceModal } from '../components/FindWorkspaceModal'
+import { EmailVerifyModal } from '../components/EmailVerifyModal'
 
 export function TenantLogin() {
   const navigate = useNavigate()
@@ -20,8 +21,7 @@ export function TenantLogin() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [findOpen, setFindOpen] = useState(false)
-  const [findInitialStep, setFindInitialStep] = useState(1)
-  const [findInitialEmail, setFindInitialEmail] = useState('')
+  const [emailVerifyOpen, setEmailVerifyOpen] = useState(false)
 
   const hostname = window.location.hostname
   const parts = hostname.split('.')
@@ -48,9 +48,7 @@ export function TenantLogin() {
       // redirect is handled by the useEffect watching [authChecked, user]
     } catch (err) {
       if (err?.status === 403 && err?.data?.error_code === 'EMAIL_NOT_VERIFIED') {
-        setFindInitialEmail(email)
-        setFindInitialStep(0)
-        setFindOpen(true)
+        setEmailVerifyOpen(true)
       } else if (err?.status === 403) {
         navigate('/pending')
       } else {
@@ -169,7 +167,12 @@ export function TenantLogin() {
         </div>
       </div>
 
-      <FindWorkspaceModal open={findOpen} onClose={() => setFindOpen(false)} initialStep={findInitialStep} initialEmail={findInitialEmail} />
+      <FindWorkspaceModal open={findOpen} onClose={() => setFindOpen(false)} />
+      <EmailVerifyModal
+        open={emailVerifyOpen}
+        onClose={() => setEmailVerifyOpen(false)}
+        email={email}
+      />
     </div>
   )
 }

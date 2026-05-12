@@ -6,7 +6,7 @@ import { OtpInput } from './ui/OtpInput'
 import { api } from '../lib/api'
 import { tokens } from '../lib/tokens'
 
-export function FindWorkspaceModal({ open, onClose, initialStep = 1, initialEmail = '' }) {
+export function FindWorkspaceModal({ open, onClose }) {
   const [step, setStep] = useState(1)
   const [email, setEmail] = useState('')
   const [otp, setOtp] = useState('')
@@ -19,7 +19,7 @@ export function FindWorkspaceModal({ open, onClose, initialStep = 1, initialEmai
 
   useEffect(() => {
     if (open) {
-      setStep(initialStep); setEmail(initialEmail); setOtp(''); setTenants([])
+      setStep(1); setEmail(''); setOtp(''); setTenants([])
       setCountdown(600); setError(''); setIdentityToken(''); setSelectedTenant(null)
     }
   }, [open])
@@ -77,7 +77,6 @@ export function FindWorkspaceModal({ open, onClose, initialStep = 1, initialEmai
   }
 
   const STEP_TITLES = {
-    0: 'Email non verificata',
     1: 'Trova il tuo spazio di lavoro',
     2: 'Controlla la tua email',
     3: 'I tuoi spazi di lavoro',
@@ -88,13 +87,6 @@ export function FindWorkspaceModal({ open, onClose, initialStep = 1, initialEmai
     <Modal open={open} onClose={onClose} width={480}>
       <ModalHeader title={STEP_TITLES[step]} onClose={onClose} />
       <div style={{ padding: '0 32px 32px' }}>
-        {step === 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <p style={{ color: tokens.textMuted, fontSize: 14, margin: 0 }}>La tua email non è stata ancora verificata. Verifica la tua email per poter accedere.</p>
-            {error && <div style={{ color: tokens.error, fontSize: 13 }}>{error}</div>}
-            <Button onClick={requestOtp} loading={loading}>Richiedi codice OTP</Button>
-          </div>
-        )}
         {step === 1 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <p style={{ color: tokens.textMuted, fontSize: 14, margin: 0 }}>Inserisci la tua email per ricevere un codice di accesso.</p>
