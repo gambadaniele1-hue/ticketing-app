@@ -52,8 +52,33 @@ function RegisterModal({ open, onClose, plans, plansError, preselectedPlanId }) 
 
   const fmt = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 
+  const validateCompany = () => {
+    const errs = {}
+    if (!form.companyName) errs.companyName = 'Obbligatorio'
+    if (!form.subdomain) errs.subdomain = 'Obbligatorio'
+    else if (!/^[a-z0-9-]+$/.test(form.subdomain)) errs.subdomain = 'Solo lettere minuscole, numeri e trattini'
+    setErrors(errs)
+    return Object.keys(errs).length === 0
+  }
+
+  const validateAdmin = () => {
+    const errs = {}
+    if (!form.adminName) errs.adminName = 'Obbligatorio'
+    if (!form.adminEmail) errs.adminEmail = 'Obbligatorio'
+    if (!form.adminPassword) errs.adminPassword = 'Obbligatorio'
+    else if (form.adminPassword.length < 8) errs.adminPassword = 'Almeno 8 caratteri'
+    setErrors(errs)
+    return Object.keys(errs).length === 0
+  }
+
+  const goToAdminStep = () => {
+    if (validateCompany()) {
+      setStep(3)
+    }
+  }
+
   useEffect(() => {
-    if (step !== 3 || countdown <= 0) return
+    if (step !== 4 || countdown <= 0) return
     const t = setInterval(() => setCountdown((c) => Math.max(0, c - 1)), 1000)
     return () => clearInterval(t)
   }, [step, countdown])
@@ -81,16 +106,9 @@ function RegisterModal({ open, onClose, plans, plansError, preselectedPlanId }) 
   }
 
   const submit = async () => {
-    const errs = {}
-    if (!form.companyName) errs.companyName = 'Obbligatorio'
-    if (!form.subdomain) errs.subdomain = 'Obbligatorio'
-    else if (!/^[a-z0-9-]+$/.test(form.subdomain)) errs.subdomain = 'Solo lettere minuscole, numeri e trattini'
-    if (!form.adminName) errs.adminName = 'Obbligatorio'
-    if (!form.adminEmail) errs.adminEmail = 'Obbligatorio'
-    if (!form.adminPassword) errs.adminPassword = 'Obbligatorio'
-    else if (form.adminPassword.length < 8) errs.adminPassword = 'Almeno 8 caratteri'
-    setErrors(errs)
-    if (Object.keys(errs).length) return
+    const companyValid = validateCompany()
+    const adminValid = validateAdmin()
+    if (!companyValid || !adminValid) return
 
     setLoading(true)
     try {
@@ -103,7 +121,7 @@ function RegisterModal({ open, onClose, plans, plansError, preselectedPlanId }) 
       setOtp('')
       setCountdown(600)
       setOtpError('')
-      setStep(3)
+      setStep(4)
     } catch {
       setErrors({ _form: 'Errore nella registrazione, riprova.' })
     } finally {
@@ -114,7 +132,7 @@ function RegisterModal({ open, onClose, plans, plansError, preselectedPlanId }) 
   return (
     <Modal open={open} onClose={onClose} width={560}>
       <ModalHeader
-        title={success ? 'Verifica completata' : step === 1 ? 'Scegli il tuo piano' : step === 2 ? 'Crea il tuo workspace' : 'Verifica la tua email'}
+        title={success ? 'Verifica completata' : step === 1 ? 'Scegli il tuo piano' : step === 2 ? 'Dati dell\'azienda' : step === 3 ? 'Dati dell\'admin' : 'Verifica la tua email'}
         onClose={onClose}
       />
       {success ? (
@@ -204,6 +222,16 @@ function RegisterModal({ open, onClose, plans, plansError, preselectedPlanId }) 
                 onBlur={(e) => (e.target.style.borderColor = tokens.border)}
               />
             </div>
+            {errors._form && <div style={{ color: tokens.error, fontSize: 13 }}>{errors._form}</div>}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 8 }}>
+              <Button variant="secondary" onClick={() => setStep(1)}>Indietro</Button>
+              <Button onClick={goToAdminStep} loading={loading}>Avanti</Button>
+            </div>
+          </div>
+        </div>
+      ) : step === 3 ? (
+        <div style={{ padding: '8px 32px 32px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <Input label="Nome Admin" placeholder="Mario Rossi" value={form.adminName} error={errors.adminName}
               onChange={(e) => setForm({ ...form, adminName: e.target.value })} />
             <Input label="Email Admin" type="email" placeholder="mario@azienda.it" value={form.adminEmail} error={errors.adminEmail}
@@ -211,7 +239,10 @@ function RegisterModal({ open, onClose, plans, plansError, preselectedPlanId }) 
             <Input label="Password Admin" type="password" placeholder="Almeno 8 caratteri" value={form.adminPassword} error={errors.adminPassword}
               onChange={(e) => setForm({ ...form, adminPassword: e.target.value })} />
             {errors._form && <div style={{ color: tokens.error, fontSize: 13 }}>{errors._form}</div>}
-            <Button onClick={submit} loading={loading} style={{ marginTop: 8 }}>Crea workspace</Button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, marginTop: 8 }}>
+              <Button variant="secondary" onClick={() => setStep(2)}>Indietro</Button>
+              <Button onClick={submit} loading={loading} style={{ flex: 1 }}>Registrati</Button>
+            </div>
           </div>
         </div>
       ) : (
