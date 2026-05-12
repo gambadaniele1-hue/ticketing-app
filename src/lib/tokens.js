@@ -1,0 +1,17 @@
+export const tokens = {
+  bg: '#0a0a0f',
+  surface: '#12121a',
+  sidebar: '#0d0d14',
+  primary: '#7C3AED',
+  primaryHover: '#6D28D9',
+  accent: '#8B5CF6',
+  border: 'rgba(124, 58, 237, 0.3)',
+  borderSoft: 'rgba(124, 58, 237, 0.15)',
+  text: '#f0f0f5',
+  textMuted: '#8b8b9e',
+  success: '#10B981',
+  error: '#EF4444',
+  warning: '#F59E0B',
+  inputBg: '#1a1a2e',
+  cardShadow: '0 4px 24px rgba(124, 58, 237, 0.08)',
+}
