@@ -65,7 +65,8 @@ function RegisterModal({ open, onClose, plans, plansError, preselectedPlanId }) 
       await api.verifyRegistrationOtp(form.adminEmail, otp)
       setSuccess(true)
       setTimeout(() => {
-        window.location.href = `http://${registeredSubdomain}.localhost/login`
+        const appUrl = import.meta.env.VITE_APP_URL
+        window.location.href = appUrl.replace('localhost', `${registeredSubdomain}.localhost`) + '/login'
       }, 1500)
     } catch {
       setOtpError('Codice non valido o scaduto.')
@@ -302,10 +303,10 @@ function FindWorkspaceModal({ open, onClose }) {
       if (redirectUrl) {
         await fetch(redirectUrl, { credentials: 'include' })
       }
-      const appUrl = import.meta.env.VITE_APP_URL || 'http://localhost:5173'
+      const appUrl = import.meta.env.VITE_APP_URL
       window.location.href = appUrl.replace('localhost', `${tenant.id}.localhost`) + '/login'
     } catch {
-      const appUrl = import.meta.env.VITE_APP_URL || 'http://localhost:5173'
+      const appUrl = import.meta.env.VITE_APP_URL
       window.location.href = appUrl.replace('localhost', `${tenant.id}.localhost`) + '/login'
     } finally {
       setLoading(false)
