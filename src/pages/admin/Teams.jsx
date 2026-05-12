@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Card } from '../../components/ui/Card'
 import { Button } from '../../components/ui/Button'
 import { Badge } from '../../components/ui/Badge'
@@ -36,8 +36,11 @@ export function Teams() {
   const [addRole, setAddRole] = useState('Agent')
   const [saving, setSaving] = useState(false)
   const [tlWarning, setTlWarning] = useState(null)
+  const fetchedRef = useRef(false)
 
   useEffect(() => {
+    if (fetchedRef.current) return
+    fetchedRef.current = true
     api.getAdminTeams().then((r) => setTeams(r.data)).catch(() => {})
     api.getAdminUsers().then((r) => setAllUsers(r.data)).catch(() => {})
   }, [])

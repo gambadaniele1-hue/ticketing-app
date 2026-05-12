@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Card } from '../../components/ui/Card'
 import { Badge } from '../../components/ui/Badge'
 import { Skeleton } from '../../components/ui/Skeleton'
@@ -8,8 +8,11 @@ import { tokens } from '../../lib/tokens'
 export function Macros() {
   const [macros, setMacros] = useState(null)
   const [teams, setTeams] = useState([])
+  const fetchedRef = useRef(false)
 
   useEffect(() => {
+    if (fetchedRef.current) return
+    fetchedRef.current = true
     Promise.all([
       api.getAdminMacros().catch(() => ({ data: null })),
       api.getAdminTeams().catch(() => ({ data: [] })),

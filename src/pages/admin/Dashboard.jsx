@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Card } from '../../components/ui/Card'
 import { Skeleton } from '../../components/ui/Skeleton'
 import { api } from '../../lib/api'
@@ -66,8 +66,11 @@ function DistributionBar({ stats }) {
 
 export function Dashboard() {
   const [stats, setStats] = useState(null)
+  const fetchedRef = useRef(false)
 
   useEffect(() => {
+    if (fetchedRef.current) return
+    fetchedRef.current = true
     api.getAdminStats()
       .then((r) => setStats(r.data))
       .catch(() => {})

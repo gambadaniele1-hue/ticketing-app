@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Card } from '../../components/ui/Card'
 import { Button } from '../../components/ui/Button'
 import { Badge } from '../../components/ui/Badge'
@@ -38,8 +38,11 @@ export function Users() {
   const [roleModal, setRoleModal] = useState(null)
   const [selectedRole, setSelectedRole] = useState('')
   const [roleLoading, setRoleLoading] = useState(false)
+  const fetchedRef = useRef(false)
 
   useEffect(() => {
+    if (fetchedRef.current) return
+    fetchedRef.current = true
     api.getAdminUsers()
       .then((r) => setUsers(r.data))
       .catch(() => {})

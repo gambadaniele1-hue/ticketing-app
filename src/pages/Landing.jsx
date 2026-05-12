@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Card } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
 import { Badge } from '../components/ui/Badge'
@@ -468,13 +468,19 @@ export function Landing() {
   const [findOpen, setFindOpen] = useState(false)
   const [preselectedPlan, setPreselectedPlan] = useState(null)
 
+  const initialFetchDone = useRef(false)
+
   const fetchPlans = () => {
     setPlansError(false)
     setPlans(null)
     api.getPlans().then((r) => setPlans(r.data)).catch(() => setPlansError(true))
   }
 
-  useEffect(() => { fetchPlans() }, [])
+  useEffect(() => {
+    if (initialFetchDone.current) return
+    initialFetchDone.current = true
+    fetchPlans()
+  }, [])
 
   const openRegister = (planId) => { setPreselectedPlan(planId || null); setRegisterOpen(true) }
 
