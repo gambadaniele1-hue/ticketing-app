@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '../components/ui/Button'
 import { tokens } from '../lib/tokens'
 
-export function Pending() {
+export function NoAccess() {
   const navigate = useNavigate()
   return (
     <div style={{
@@ -20,15 +20,15 @@ export function Pending() {
           marginBottom: 28,
         }}>
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="9" stroke="#8B5CF6" strokeWidth="1.6" />
-            <path d="M12 7V12L15 14" stroke="#8B5CF6" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            <rect x="5" y="11" width="14" height="10" rx="2" stroke="#8B5CF6" strokeWidth="1.6" />
+            <path d="M8 11V7a4 4 0 0 1 8 0v4" stroke="#8B5CF6" strokeWidth="1.6" strokeLinecap="round" />
           </svg>
         </div>
         <h1 style={{ fontSize: 32, fontWeight: 700, margin: '0 0 16px', letterSpacing: '-0.02em' }}>
-          Accesso in attesa
+          Accesso negato
         </h1>
         <p style={{ color: tokens.textMuted, fontSize: 16, lineHeight: 1.6, margin: '0 0 32px' }}>
-          Il tuo account è in attesa di approvazione da parte dell'amministratore.
+          Non hai accesso a questa area di lavoro.
         </p>
         <Button variant="secondary" onClick={() => navigate('/login')}>Torna alla login</Button>
       </div>

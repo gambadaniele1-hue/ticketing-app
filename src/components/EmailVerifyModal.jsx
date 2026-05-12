@@ -5,7 +5,14 @@ import { OtpInput } from './ui/OtpInput'
 import { api } from '../lib/api'
 import { tokens } from '../lib/tokens'
 
-export function EmailVerifyModal({ open, onClose, email }) {
+export function EmailVerifyModal({
+  open,
+  onClose,
+  email,
+  verifyOnly = false,
+  message = 'La tua email non è stata ancora verificata. Verifica la tua email per poter accedere.',
+  onVerified,
+}) {
   const [step, setStep] = useState(1)
   const [otp, setOtp] = useState('')
   const [countdown, setCountdown] = useState(600)
@@ -35,6 +42,10 @@ export function EmailVerifyModal({ open, onClose, email }) {
     setLoading(true); setError('')
     try {
       const r = await api.verifyOtp(email, otp)
+      if (verifyOnly) {
+        onVerified?.()
+        return
+      }
       const identityToken = r.identity_token
       setStep(3)
       const subdomain = window.location.hostname.split('.')[0]
@@ -45,9 +56,12 @@ export function EmailVerifyModal({ open, onClose, email }) {
       }
       const appUrl = import.meta.env.VITE_APP_URL
       window.location.href = appUrl.replace('localhost', `${subdomain}.localhost`) + '/login'
-    } catch {
-      setError('Codice non valido o scaduto.')
-      setLoading(false)
+    } catch (err) {
+      const code = err?.data?.error_code
+      if (code === 'NO_MEMBERSHIP') window.location.href = '/no-access'
+      else if (code === 'MEMBERSHIP_PENDING') window.location.href = '/pending'
+      else if (code === 'MEMBERSHIP_BANNED') window.location.href = '/banned'
+      else { setError('Codice non valido o scaduto.'); setLoading(false) }
     }
   }
 
@@ -63,9 +77,7 @@ export function EmailVerifyModal({ open, onClose, email }) {
       <div style={{ padding: '0 32px 32px' }}>
         {step === 1 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <p style={{ color: tokens.textMuted, fontSize: 14, margin: 0 }}>
-              La tua email non è stata ancora verificata. Verifica la tua email per poter accedere.
-            </p>
+            <p style={{ color: tokens.textMuted, fontSize: 14, margin: 0 }}>{message}</p>
             {error && <div style={{ color: tokens.error, fontSize: 13 }}>{error}</div>}
             <Button onClick={requestOtp} loading={loading}>Richiedi codice OTP</Button>
           </div>

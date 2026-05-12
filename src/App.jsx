@@ -3,7 +3,10 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { Landing } from './pages/Landing'
 import { TenantLogin } from './pages/TenantLogin'
+import { TenantRegister } from './pages/TenantRegister'
 import { Pending } from './pages/Pending'
+import { Banned } from './pages/Banned'
+import { NoAccess } from './pages/NoAccess'
 import { NotFound } from './pages/NotFound'
 import { AdminLayout } from './layouts/AdminLayout'
 import { Dashboard } from './pages/admin/Dashboard'
@@ -100,7 +103,10 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<TenantLogin />} />
+      <Route path="/register" element={<TenantRegister />} />
       <Route path="/pending" element={<Pending />} />
+      <Route path="/banned" element={<Banned />} />
+      <Route path="/no-access" element={<NoAccess />} />
       <Route path="/not-found" element={<NotFound />} />
       <Route path="/admin" element={<AdminGuard><AdminLayout /></AdminGuard>}>
         <Route index element={<Navigate to="/admin/dashboard" replace />} />

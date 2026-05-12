@@ -60,17 +60,21 @@ export function FindWorkspaceModal({ open, onClose }) {
     setSelectedTenant(tenant)
     setStep(4)
     setLoading(true)
+    const appUrl = import.meta.env.VITE_APP_URL
+    const tenantBase = appUrl.replace('localhost', `${tenant.id}.localhost`)
     try {
       const r = await api.selectTenant(tenant.id, identityToken)
       const redirectUrl = r.data?.redirect_url
       if (redirectUrl) {
         await fetch(redirectUrl, { credentials: 'include' })
       }
-      const appUrl = import.meta.env.VITE_APP_URL
-      window.location.href = appUrl.replace('localhost', `${tenant.id}.localhost`) + '/login'
-    } catch {
-      const appUrl = import.meta.env.VITE_APP_URL
-      window.location.href = appUrl.replace('localhost', `${tenant.id}.localhost`) + '/login'
+      window.location.href = tenantBase + '/login'
+    } catch (err) {
+      const code = err?.data?.error_code
+      if (code === 'NO_MEMBERSHIP') window.location.href = tenantBase + '/no-access'
+      else if (code === 'MEMBERSHIP_PENDING') window.location.href = tenantBase + '/pending'
+      else if (code === 'MEMBERSHIP_BANNED') window.location.href = tenantBase + '/banned'
+      else window.location.href = tenantBase + '/login'
     } finally {
       setLoading(false)
     }

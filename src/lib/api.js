@@ -49,6 +49,7 @@ export const api = {
 
   // Tenant
   getTenantInfo: () => req('GET', '/tenant/info'),
+  register: (name, email, password) => req('POST', '/auth/register', { name, email, password }),
   login: (email, password) => req('POST', '/auth/login', { email, password }),
   getMe: () => req('GET', '/auth/me'),
   refresh: () => req('POST', '/auth/refresh'),
