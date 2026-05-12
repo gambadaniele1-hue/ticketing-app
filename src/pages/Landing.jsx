@@ -33,6 +33,7 @@ function RegisterModal({ open, onClose, plans, plansError, preselectedPlanId }) 
   const [otp, setOtp] = useState('')
   const [countdown, setCountdown] = useState(600)
   const [otpError, setOtpError] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
 
   useEffect(() => {
     if (open) {
@@ -45,6 +46,7 @@ function RegisterModal({ open, onClose, plans, plansError, preselectedPlanId }) 
       setOtp('')
       setCountdown(600)
       setOtpError('')
+      setShowPassword(false)
     }
   }, [open, preselectedPlanId])
 
@@ -236,8 +238,49 @@ function RegisterModal({ open, onClose, plans, plansError, preselectedPlanId }) 
               onChange={(e) => setForm({ ...form, adminName: e.target.value })} />
             <Input label="Email Admin" type="email" placeholder="mario@azienda.it" value={form.adminEmail} error={errors.adminEmail}
               onChange={(e) => setForm({ ...form, adminEmail: e.target.value })} />
-            <Input label="Password Admin" type="password" placeholder="Almeno 8 caratteri" value={form.adminPassword} error={errors.adminPassword}
-              onChange={(e) => setForm({ ...form, adminPassword: e.target.value })} />
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, position: 'relative' }}>
+              <label style={{ fontSize: 13, color: tokens.textMuted, fontWeight: 500 }}>Password Admin</label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Almeno 8 caratteri"
+                  value={form.adminPassword}
+                  onChange={(e) => setForm({ ...form, adminPassword: e.target.value })}
+                  style={{
+                    width: '100%',
+                    background: tokens.inputBg,
+                    border: `1px solid ${errors.adminPassword ? tokens.error : tokens.border}`,
+                    borderRadius: 8,
+                    padding: '10px 40px 10px 12px',
+                    color: tokens.text,
+                    fontSize: 14,
+                    fontFamily: 'inherit',
+                    outline: 'none',
+                    transition: 'border-color 200ms ease',
+                  }}
+                  onFocus={(e) => (e.target.style.borderColor = tokens.primary)}
+                  onBlur={(e) => (e.target.style.borderColor = errors.adminPassword ? tokens.error : tokens.border)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((show) => !show)}
+                  style={{
+                    position: 'absolute',
+                    right: 10,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    color: tokens.textMuted,
+                    cursor: 'pointer',
+                    fontSize: 16,
+                    padding: 4,
+                  }}
+                >
+                  {showPassword ? '🙈' : '👁️'}
+                </button>
+              </div>
+            </div>
             {errors._form && <div style={{ color: tokens.error, fontSize: 13 }}>{errors._form}</div>}
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, marginTop: 8 }}>
               <Button variant="secondary" onClick={() => setStep(2)}>Indietro</Button>
