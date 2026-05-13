@@ -9,6 +9,22 @@ import { IconButton } from '../../components/IconButton'
 import { api } from '../../lib/api'
 import { tokens } from '../../lib/tokens'
 
+const MOCK_CATEGORIES = [
+  { id: 1,  name: 'Problemi Tecnici',    parent_id: null },
+  { id: 2,  name: 'Fatturazione',        parent_id: null },
+  { id: 3,  name: 'Richieste Generali',  parent_id: null },
+  { id: 4,  name: 'Account e Accessi',   parent_id: null },
+  { id: 11, name: 'Connettività',        parent_id: 1    },
+  { id: 12, name: 'Software',            parent_id: 1    },
+  { id: 13, name: 'Hardware',            parent_id: 1    },
+  { id: 21, name: 'Pagamenti',           parent_id: 2    },
+  { id: 22, name: 'Rimborsi',            parent_id: 2    },
+  { id: 31, name: 'Informazioni Prodotto',parent_id: 3   },
+  { id: 32, name: 'Suggerimenti',        parent_id: 3    },
+  { id: 41, name: 'Reset Password',      parent_id: 4    },
+  { id: 42, name: 'Gestione Permessi',   parent_id: 4    },
+]
+
 function CategoryRow({ cat, depth, children, allChildrenOf, onEdit, onDelete }) {
   return (
     <div>
@@ -53,7 +69,7 @@ function CategoryRow({ cat, depth, children, allChildrenOf, onEdit, onDelete }) 
 }
 
 export function Categories() {
-  const [cats, setCats] = useState(null)
+  const [cats, setCats] = useState(MOCK_CATEGORIES)
   const [modalOpen, setModalOpen] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [form, setForm] = useState({ name: '', parent_id: '' })
@@ -62,7 +78,7 @@ export function Categories() {
   useEffect(() => {
     if (fetchedRef.current) return
     fetchedRef.current = true
-    api.getAdminCategories().then((r) => setCats(r.data)).catch(() => {})
+    // api.getAdminCategories().then((r) => setCats(r.data)).catch(() => {})
   }, [])
 
   const openNew = () => { setEditingId(null); setForm({ name: '', parent_id: '' }); setModalOpen(true) }

@@ -11,8 +11,10 @@ const STAT_CARDS = [
   { key: 'closed', label: 'Chiusi', dot: '#10B981' },
 ]
 
+const MOCK_STATS = { open: 23, in_progress: 14, waiting: 8, closed: 156 }
+
 function TrendChart() {
-  const data = [4, 7, 5, 9, 6, 11, 8]
+  const data = [12, 19, 14, 22, 17, 9, 6]
   const days = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']
   const max = Math.max(...data)
   return (
@@ -65,15 +67,15 @@ function DistributionBar({ stats }) {
 }
 
 export function Dashboard() {
-  const [stats, setStats] = useState(null)
+  const [stats, setStats] = useState(MOCK_STATS)
   const fetchedRef = useRef(false)
 
   useEffect(() => {
     if (fetchedRef.current) return
     fetchedRef.current = true
-    api.getAdminStats()
-      .then((r) => setStats(r.data))
-      .catch(() => {})
+    // api.getAdminStats()
+    //   .then((r) => setStats(r.data))
+    //   .catch(() => {})
   }, [])
 
   return (
