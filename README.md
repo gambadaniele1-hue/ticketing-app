@@ -1,16 +1,16 @@
 # 🎫 Ticketing App
-### Frontend SPA — React + Tailwind CSS
+### Frontend — React + Vite + Tailwind
 
-> Interfaccia utente del sistema di ticketing multi-tenant ibrido. 
-> Progettata con Claude Design e integrata con ticketing-api via REST.
+> Interfaccia utente del sistema di ticketing multi-tenant ibrido. Comunica con il backend Laravel tramite API REST e gestisce i flussi di autenticazione, registrazione tenant e pannelli per ogni ruolo.
 
 ---
 
 ## 📌 Panoramica
 
-**Ticketing App** è il frontend del sistema. Gestisce la registrazione 
-dei tenant, il login, e l'interfaccia operativa per la gestione dei ticket. 
-Ogni tenant accede tramite il proprio sottodominio dedicato.
+**Ticketing App** è il frontend della piattaforma. Gestisce due domini distinti:
+
+- **Dominio centrale** (`localhost`) — landing page, registrazione tenant, flusso OTP per trovare il proprio spazio di lavoro.
+- **Dominio tenant** (`{subdomain}.localhost`) — login, pannello Admin, pannello Agente, portale Cliente.
 
 ---
 
@@ -18,25 +18,92 @@ Ogni tenant accede tramite il proprio sottodominio dedicato.
 
 | Componente | Versione |
 |---|---|
-| React | 19 |
-| Tailwind CSS | v4 |
+| React | 18+ |
 | Vite | — |
+| Tailwind CSS | — |
 
 ---
 
 ## ⚙️ Installazione
-VITE_API_URL=http://localhost:8000
 
 ```bash
+# 1. Clona la repository
 git clone https://github.com/gambadaniele1-hue/ticketing-app.git
 cd ticketing-app
+
+# 2. Installa le dipendenze
 npm install
+
+# 3. Copia il file di configurazione
 cp .env.example .env
+
+# 4. Avvia il server di sviluppo
 npm run dev
 ```
 
-Configura `.env`:
-VITE_API_URL=http://localhost:8000
+---
+
+## 🌐 Struttura URL
+
+| Dominio | Scopo |
+|---|---|
+| `localhost` | Landing page, registrazione tenant, flusso OTP |
+| `{subdomain}.localhost` | Login, dashboard per ruolo |
+
+---
+
+## 📄 Pagine
+
+### Dominio Centrale
+- **Landing page** — Hero, Come funziona, Piani, Footer
+- **Modal Registrazione Tenant** — wizard 2 step (selezione piano → form)
+- **Modal Trova Workspace** — wizard 4 step (email → OTP → lista tenant → redirect)
+
+### Dominio Tenant
+- **Login** — scheda tenant + form login
+- **Pending** — accesso in attesa di approvazione
+- **Not Found** — sottodominio non esistente
+
+### Pannello Admin *(UI con dati mock — backend in sviluppo)*
+- Dashboard statistiche
+- Gestione utenti (approva, rifiuta, sospendi, riattiva, cambia ruolo)
+- Gestione team e membri
+- Gestione categorie
+- Gestione SLA
+- Visualizzazione macro
+
+### Pannello Agente *(UI dimostrativa)*
+- Coda ticket del team
+- Dettaglio ticket con chat e note interne
+
+### Portale Cliente *(UI dimostrativa)*
+- Lista ticket personali
+- Apertura nuovo ticket
+- Dettaglio ticket
+
+---
+
+## 🔐 Autenticazione
+
+I token JWT viaggiano in **cookie HttpOnly** gestiti dal backend — il frontend non li vede mai direttamente. Tutte le chiamate API usano `credentials: 'include'` per trasportare i cookie automaticamente.
+
+Dopo il login il redirect avviene in base al ruolo:
+
+| Ruolo | Redirect |
+|---|---|
+| `Admin` | `/admin/dashboard` |
+| `Agent` | `/agent/dashboard` |
+| `Team Lead` | `/agent/dashboard` |
+| `Customer` | `/customer/dashboard` |
+
+---
+
+## 🔧 Variabili d'ambiente
+
+```env
+VITE_API_BASE_URL=http://localhost
+VITE_APP_DOMAIN=localhost
+```
 
 ---
 
@@ -44,8 +111,8 @@ VITE_API_URL=http://localhost:8000
 
 | Repository | Descrizione |
 |---|---|
-| [`ticketing-api`](https://github.com/gambadaniele1-hue/ticketing-api) | Backend REST Laravel 12 |
-| [`ticketing-mail`](https://github.com/gambadaniele1-hue/ticketing-mail) | Microservizio Go per email |
+| [`ticketing-api`](https://github.com/gambadaniele1-hue/ticketing-api) | Backend Laravel — API REST |
+| [`ticketing-mail`](https://github.com/gambadaniele1-hue/ticketing-mail) | Microservizio Go per l'invio email via Redis |
 | [`ticketing-docs`](https://github.com/gambadaniele1-hue/ticketing-docs) | Documentazione completa |
 
 ---
@@ -56,4 +123,4 @@ Progetto realizzato come elaborato di quinta superiore — Informatica.
 
 ---
 
-*Frontend v1.0 — React 19 + Tailwind CSS*
+*App v1.0 — React + Vite + Tailwind*
