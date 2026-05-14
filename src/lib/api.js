@@ -77,6 +77,8 @@ export const api = {
   createCategory: (body) => req('POST', '/admin/categories', body),
   updateCategory: (id, body) => req('PATCH', `/admin/categories/${id}`, body),
   deleteCategory: (id) => req('DELETE', `/admin/categories/${id}`),
+  addCategoryTeam: (catId, teamId) => req('POST', `/admin/categories/${catId}/teams`, { team_id: teamId }),
+  removeCategoryTeam: (catId, teamId) => req('DELETE', `/admin/categories/${catId}/teams/${teamId}`),
 
   getAdminSla: () => req('GET', '/admin/sla'),
   createSla: (body) => req('POST', '/admin/sla', body),
