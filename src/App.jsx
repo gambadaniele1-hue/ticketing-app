@@ -3,7 +3,12 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { Landing } from './pages/Landing'
 import { TenantLogin } from './pages/TenantLogin'
+import { TenantRegister } from './pages/TenantRegister'
+import { CustomerDashboard } from './pages/CustomerDashboard'
+import { AgentDashboard } from './pages/AgentDashboard'
 import { Pending } from './pages/Pending'
+import { Banned } from './pages/Banned'
+import { NoAccess } from './pages/NoAccess'
 import { NotFound } from './pages/NotFound'
 import { AdminLayout } from './layouts/AdminLayout'
 import { Dashboard } from './pages/admin/Dashboard'
@@ -17,6 +22,12 @@ import { tokens } from './lib/tokens'
 
 const _parts = window.location.hostname.split('.')
 const isTenantDomain = _parts.length > 1 && _parts[0] !== 'www'
+
+// Module-level guards: survive React Strict Mode's fake unmount/remount cycle.
+// useRef resets when a component mounts late (after an async parent resolves);
+// module-level vars are safe for singleton, page-lifetime concerns like these.
+let _tenantFetched = false
+let _authInitialized = false
 
 function Spinner() {
   return (
@@ -33,6 +44,8 @@ function TenantGate({ children }) {
 
   useEffect(() => {
     if (!subdomain) return
+    if (_tenantFetched) return
+    _tenantFetched = true
     const apiBase = (import.meta.env.VITE_API_URL || 'http://localhost:8000')
       .replace('localhost', `${subdomain}.localhost`)
     fetch(`${apiBase}/api/v1/tenant/info`, { credentials: 'include' })
@@ -72,6 +85,8 @@ function AuthInitializer({ children }) {
   const { authChecked, setAuth, markAuthChecked } = useAuth()
 
   useEffect(() => {
+    if (_authInitialized) return
+    _authInitialized = true
     if (!isTenantDomain) { markAuthChecked(); return }
     api.getMe()
       .then((r) => setAuth(r.data))
@@ -95,12 +110,31 @@ function AdminGuard({ children }) {
   return children
 }
 
+function CustomerGuard({ children }) {
+  const { user, role } = useAuth()
+  if (!user) return <Navigate to="/login" replace />
+  if (role?.name !== 'Customer') return <Navigate to="/login" replace />
+  return children
+}
+
+function AgentGuard({ children }) {
+  const { user, role } = useAuth()
+  if (!user) return <Navigate to="/login" replace />
+  if (!['Agent', 'Team Lead'].includes(role?.name)) return <Navigate to="/login" replace />
+  return children
+}
+
 function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<TenantLogin />} />
+      <Route path="/register" element={<TenantRegister />} />
+      <Route path="/customer/dashboard" element={<CustomerGuard><CustomerDashboard /></CustomerGuard>} />
+      <Route path="/agent/dashboard" element={<AgentGuard><AgentDashboard /></AgentGuard>} />
       <Route path="/pending" element={<Pending />} />
+      <Route path="/banned" element={<Banned />} />
+      <Route path="/no-access" element={<NoAccess />} />
       <Route path="/not-found" element={<NotFound />} />
       <Route path="/admin" element={<AdminGuard><AdminLayout /></AdminGuard>}>
         <Route index element={<Navigate to="/admin/dashboard" replace />} />

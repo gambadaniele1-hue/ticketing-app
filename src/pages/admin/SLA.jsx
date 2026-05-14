@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Card } from '../../components/ui/Card'
 import { Button } from '../../components/ui/Button'
 import { Badge } from '../../components/ui/Badge'
@@ -9,6 +9,13 @@ import { IconButton } from '../../components/IconButton'
 import { api } from '../../lib/api'
 import { tokens } from '../../lib/tokens'
 
+const MOCK_SLAS = [
+  { id: 1, name: 'SLA Critica',        priority: 'critical', response_time_hours: 1,  resolution_time_hours: 4  },
+  { id: 2, name: 'SLA Alta Priorità',  priority: 'high',     response_time_hours: 4,  resolution_time_hours: 12 },
+  { id: 3, name: 'SLA Standard',       priority: 'medium',   response_time_hours: 8,  resolution_time_hours: 24 },
+  { id: 4, name: 'SLA Base',           priority: 'low',      response_time_hours: 24, resolution_time_hours: 72 },
+]
+
 const PRIORITY_MAP = {
   low: { color: 'gray', label: 'Bassa' },
   medium: { color: 'blue', label: 'Media' },
@@ -17,13 +24,16 @@ const PRIORITY_MAP = {
 }
 
 export function SLA() {
-  const [slas, setSlas] = useState(null)
+  const [slas, setSlas] = useState(MOCK_SLAS)
   const [modalOpen, setModalOpen] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [form, setForm] = useState({ name: '', priority: 'medium', response_time_hours: 8, resolution_time_hours: 24 })
+  const fetchedRef = useRef(false)
 
   useEffect(() => {
-    api.getAdminSla().then((r) => setSlas(r.data)).catch(() => {})
+    if (fetchedRef.current) return
+    fetchedRef.current = true
+    // api.getAdminSla().then((r) => setSlas(r.data)).catch(() => {})
   }, [])
 
   const openNew = () => {

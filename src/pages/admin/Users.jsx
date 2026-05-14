@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Card } from '../../components/ui/Card'
 import { Button } from '../../components/ui/Button'
 import { Badge } from '../../components/ui/Badge'
@@ -11,8 +11,23 @@ import { tokens } from '../../lib/tokens'
 const ROLE_OPTIONS = [
   { value: 'Admin', label: 'Admin' },
   { value: 'Agent', label: 'Agent' },
-  { value: 'Team Lead', label: 'Team Lead' },
   { value: 'Customer', label: 'Customer' },
+]
+
+const MOCK_USERS = [
+  { id: 1,  name: 'Daniele Gamba',      email: 'daniele@acme.io',       role: 'Admin',     team: null,                state: 'accepted'  },
+  { id: 2,  name: 'Francesca Moretti',  email: 'f.moretti@acme.io',     role: 'Agent',     team: 'Supporto Tecnico',  state: 'accepted'  },
+  { id: 3,  name: 'Luca Bianchi',       email: 'l.bianchi@acme.io',     role: 'Agent',     team: 'Supporto Tecnico',  state: 'accepted'  },
+  { id: 4,  name: 'Sara Esposito',      email: 's.esposito@acme.io',    role: 'Agent',     team: 'Assistenza Clienti',state: 'accepted'  },
+  { id: 5,  name: 'Marco Ricci',        email: 'm.ricci@acme.io',       role: 'Agent',     team: 'IT Interno',        state: 'accepted'  },
+  { id: 6,  name: 'Giulia Ferrara',     email: 'g.ferrara@acme.io',     role: 'Agent',     team: 'Assistenza Clienti',state: 'accepted'  },
+  { id: 7,  name: 'Alessandro Bruno',   email: 'a.bruno@acme.io',       role: 'Agent',     team: 'IT Interno',        state: 'accepted'  },
+  { id: 8,  name: 'Chiara Romano',      email: 'c.romano@acme.io',      role: 'Agent',     team: 'Onboarding',        state: 'accepted'  },
+  { id: 9,  name: 'Pietro Colombo',     email: 'p.colombo@acme.io',     role: 'Customer',  team: null,                state: 'pending'   },
+  { id: 10, name: 'Valentina Costa',    email: 'v.costa@acme.io',       role: 'Customer',  team: null,                state: 'pending'   },
+  { id: 11, name: 'Roberto Mancini',    email: 'r.mancini@acme.io',     role: 'Customer',  team: null,                state: 'accepted'  },
+  { id: 12, name: 'Elena Greco',        email: 'e.greco@acme.io',       role: 'Agent',     team: 'Supporto Tecnico',  state: 'suspended' },
+  { id: 13, name: 'Stefano Conti',      email: 's.conti@acme.io',       role: 'Customer',  team: null,                state: 'rejected'  },
 ]
 
 function stateBadge(s) {
@@ -26,23 +41,26 @@ function stateBadge(s) {
 }
 
 function roleBadge(r) {
-  const c = { Admin: 'purple', Agent: 'blue', 'Team Lead': 'orange', Customer: 'gray' }[r] || 'gray'
+  const c = { Admin: 'purple', Agent: 'blue', Customer: 'gray' }[r] || 'gray'
   return <Badge color={c}>{r}</Badge>
 }
 
 const COLS = ['Nome', 'Email', 'Ruolo', 'Team', 'Stato', 'Azioni']
 
 export function Users() {
-  const [users, setUsers] = useState(null)
+  const [users, setUsers] = useState(MOCK_USERS)
   const [filter, setFilter] = useState('all')
   const [roleModal, setRoleModal] = useState(null)
   const [selectedRole, setSelectedRole] = useState('')
   const [roleLoading, setRoleLoading] = useState(false)
+  const fetchedRef = useRef(false)
 
   useEffect(() => {
-    api.getAdminUsers()
-      .then((r) => setUsers(r.data))
-      .catch(() => {})
+    if (fetchedRef.current) return
+    fetchedRef.current = true
+    // api.getAdminUsers()
+    //   .then((r) => setUsers(r.data))
+    //   .catch(() => {})
   }, [])
 
   const approve = (id) => {

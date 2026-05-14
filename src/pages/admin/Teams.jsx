@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Card } from '../../components/ui/Card'
 import { Button } from '../../components/ui/Button'
 import { Badge } from '../../components/ui/Badge'
@@ -22,9 +22,50 @@ const TEAM_ROLES = [
   { value: 'Team Lead', label: 'Team Lead' },
 ]
 
+const MOCK_TEAMS = [
+  { id: 1, name: 'Supporto Tecnico',   members_count: 4 },
+  { id: 2, name: 'Assistenza Clienti', members_count: 3 },
+  { id: 3, name: 'IT Interno',         members_count: 2 },
+  { id: 4, name: 'Onboarding',         members_count: 2 },
+]
+
+const MOCK_MEMBERS = {
+  1: [
+    { id: 2, name: 'Francesca Moretti', email: 'f.moretti@acme.io', role: 'Team Lead' },
+    { id: 3, name: 'Luca Bianchi',      email: 'l.bianchi@acme.io', role: 'Agent'     },
+    { id: 6, name: 'Giulia Ferrara',    email: 'g.ferrara@acme.io', role: 'Agent'     },
+    { id: 8, name: 'Chiara Romano',     email: 'c.romano@acme.io',  role: 'Agent'     },
+  ],
+  2: [
+    { id: 4,  name: 'Sara Esposito',   email: 's.esposito@acme.io', role: 'Team Lead' },
+    { id: 5,  name: 'Marco Ricci',     email: 'm.ricci@acme.io',    role: 'Agent'     },
+    { id: 11, name: 'Roberto Mancini', email: 'r.mancini@acme.io',  role: 'Agent'     },
+  ],
+  3: [
+    { id: 7, name: 'Alessandro Bruno', email: 'a.bruno@acme.io', role: 'Team Lead' },
+    { id: 1, name: 'Daniele Gamba',    email: 'daniele@acme.io', role: 'Agent'     },
+  ],
+  4: [
+    { id: 8, name: 'Chiara Romano', email: 'c.romano@acme.io',  role: 'Team Lead' },
+    { id: 3, name: 'Luca Bianchi',  email: 'l.bianchi@acme.io', role: 'Agent'     },
+  ],
+}
+
+const MOCK_ALL_USERS = [
+  { id: 1,  name: 'Daniele Gamba',    email: 'daniele@acme.io',      role: 'Admin',     state: 'accepted' },
+  { id: 2,  name: 'Francesca Moretti',email: 'f.moretti@acme.io',    role: 'Team Lead', state: 'accepted' },
+  { id: 3,  name: 'Luca Bianchi',     email: 'l.bianchi@acme.io',    role: 'Agent',     state: 'accepted' },
+  { id: 4,  name: 'Sara Esposito',    email: 's.esposito@acme.io',   role: 'Agent',     state: 'accepted' },
+  { id: 5,  name: 'Marco Ricci',      email: 'm.ricci@acme.io',      role: 'Agent',     state: 'accepted' },
+  { id: 6,  name: 'Giulia Ferrara',   email: 'g.ferrara@acme.io',    role: 'Agent',     state: 'accepted' },
+  { id: 7,  name: 'Alessandro Bruno', email: 'a.bruno@acme.io',      role: 'Team Lead', state: 'accepted' },
+  { id: 8,  name: 'Chiara Romano',    email: 'c.romano@acme.io',     role: 'Agent',     state: 'accepted' },
+  { id: 11, name: 'Roberto Mancini',  email: 'r.mancini@acme.io',    role: 'Customer',  state: 'accepted' },
+]
+
 export function Teams() {
-  const [teams, setTeams] = useState(null)
-  const [allUsers, setAllUsers] = useState([])
+  const [teams, setTeams] = useState(MOCK_TEAMS)
+  const [allUsers, setAllUsers] = useState(MOCK_ALL_USERS)
   const [nameModalOpen, setNameModalOpen] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [formName, setFormName] = useState('')
@@ -36,20 +77,24 @@ export function Teams() {
   const [addRole, setAddRole] = useState('Agent')
   const [saving, setSaving] = useState(false)
   const [tlWarning, setTlWarning] = useState(null)
+  const fetchedRef = useRef(false)
 
   useEffect(() => {
-    api.getAdminTeams().then((r) => setTeams(r.data)).catch(() => {})
-    api.getAdminUsers().then((r) => setAllUsers(r.data)).catch(() => {})
+    if (fetchedRef.current) return
+    fetchedRef.current = true
+    // api.getAdminTeams().then((r) => setTeams(r.data)).catch(() => {})
+    // api.getAdminUsers().then((r) => setAllUsers(r.data)).catch(() => {})
   }, [])
 
   const openMembersModal = (team) => {
     setMembersModal({ team })
-    setMembers([]); setAddUserId(''); setAddRole('Agent'); setPendingRoles({})
-    setMembersLoading(true)
-    api.getTeamMembers(team.id)
-      .then((r) => setMembers(r.data))
-      .catch(() => {})
-      .finally(() => setMembersLoading(false))
+    setAddUserId(''); setAddRole('Agent'); setPendingRoles({})
+    setMembersLoading(false)
+    setMembers(MOCK_MEMBERS[team.id] || [])
+    // api.getTeamMembers(team.id)
+    //   .then((r) => setMembers(r.data))
+    //   .catch(() => {})
+    //   .finally(() => setMembersLoading(false))
   }
 
   const closeMembersModal = () => { setMembersModal(null); setMembers([]); setTlWarning(null) }

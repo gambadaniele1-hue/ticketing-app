@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import { BrandMark } from '../components/BrandMark'
 import { Badge } from '../components/ui/Badge'
 import { tokens } from '../lib/tokens'
+import { api } from '../lib/api'
 
 const NAV_ITEMS = [
   { path: '/admin/dashboard', label: 'Dashboard', icon: '📊' },
@@ -25,7 +26,13 @@ const PAGE_TITLES = {
 function Sidebar() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { user, tenant } = useAuth()
+  const { user, tenant, clearAuth } = useAuth()
+
+  const handleLogout = async () => {
+    await api.logout().catch(() => {})
+    clearAuth()
+    navigate('/login')
+  }
 
   return (
     <aside style={{
@@ -85,25 +92,48 @@ function Sidebar() {
       </nav>
 
       <div style={{
-        padding: 12, margin: 12,
+        margin: 12,
         borderRadius: 10,
         background: 'rgba(124, 58, 237, 0.06)',
         border: `1px solid ${tokens.borderSoft}`,
-        display: 'flex', alignItems: 'center', gap: 10,
+        overflow: 'hidden',
       }}>
-        <div style={{
-          width: 36, height: 36, borderRadius: 8, flexShrink: 0,
-          background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          color: '#fff', fontWeight: 700, fontSize: 14,
-        }}>{(user?.name || '?').charAt(0)}</div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: tokens.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {user?.name || '—'}
+        <div style={{ padding: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{
+            width: 36, height: 36, borderRadius: 8, flexShrink: 0,
+            background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#fff', fontWeight: 700, fontSize: 14,
+          }}>{(user?.name || '?').charAt(0)}</div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: tokens.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {user?.name || '—'}
+            </div>
+            <div style={{ fontSize: 11, color: tokens.textMuted, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {tenant?.name || '—'}
+            </div>
           </div>
-          <div style={{ fontSize: 11, color: tokens.textMuted, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {tenant?.name || '—'}
-          </div>
+        </div>
+        <div style={{ borderTop: `1px solid ${tokens.borderSoft}` }}>
+          <button
+            onClick={handleLogout}
+            style={{
+              width: '100%', display: 'flex', alignItems: 'center', gap: 8,
+              padding: '9px 12px', background: 'transparent', border: 'none',
+              color: tokens.textMuted, fontSize: 13, fontWeight: 500,
+              cursor: 'pointer', fontFamily: 'inherit',
+              transition: 'background 200ms, color 200ms',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; e.currentTarget.style.color = '#EF4444' }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = tokens.textMuted }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+            Esci
+          </button>
         </div>
       </div>
     </aside>

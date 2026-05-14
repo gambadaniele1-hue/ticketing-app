@@ -1,67 +1,41 @@
-import { useState, useEffect } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Card } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
-import { Badge } from '../components/ui/Badge'
 import { Skeleton } from '../components/ui/Skeleton'
 import { Input } from '../components/ui/Input'
 import { BrandMark } from '../components/BrandMark'
+import { Badge } from '../components/ui/Badge'
 import { useAuth } from '../context/AuthContext'
 import { api } from '../lib/api'
 import { tokens } from '../lib/tokens'
-import { FindWorkspaceModal } from '../components/FindWorkspaceModal'
 import { EmailVerifyModal } from '../components/EmailVerifyModal'
 
-export function TenantLogin() {
+export function TenantRegister() {
   const navigate = useNavigate()
-  const location = useLocation()
-  const { setAuth, tenantInfo, authChecked, user, role } = useAuth()
+  const { tenantInfo } = useAuth()
+  const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [findOpen, setFindOpen] = useState(false)
-  const [emailVerifyOpen, setEmailVerifyOpen] = useState(false)
+  const [verifyOpen, setVerifyOpen] = useState(false)
 
   const hostname = window.location.hostname
   const parts = hostname.split('.')
   const subdomain = parts.length > 1 ? parts[0] : hostname
 
-  useEffect(() => {
-    if (!authChecked || !user) return
-    const dest = {
-      Admin: '/admin/dashboard',
-      Agent: '/agent/dashboard',
-      'Team Lead': '/agent/dashboard',
-      Customer: '/customer/dashboard',
-    }[role?.name] || '/admin/dashboard'
-    navigate(dest, { replace: true })
-  }, [authChecked, user, role, navigate])
-
   const submit = async (e) => {
     e.preventDefault()
-    if (!email || !password) { setError('Inserisci email e password'); return }
+    if (!name || !email || !password) { setError('Compila tutti i campi'); return }
+    if (password.length < 8) { setError('La password deve essere di almeno 8 caratteri'); return }
     setLoading(true); setError('')
     try {
-      const r = await api.login(email, password)
-      setAuth(r.data)
-      // redirect is handled by the useEffect watching [authChecked, user]
+      await api.register(name, email, password)
+      setVerifyOpen(true)
     } catch (err) {
-      const code = err?.data?.error_code
-      if (err?.status === 403 && code === 'EMAIL_NOT_VERIFIED') {
-        setEmailVerifyOpen(true)
-      } else if (err?.status === 403 && code === 'NO_MEMBERSHIP') {
-        navigate('/no-access')
-      } else if (err?.status === 403 && code === 'MEMBERSHIP_PENDING') {
-        navigate('/pending')
-      } else if (err?.status === 403 && code === 'MEMBERSHIP_BANNED') {
-        navigate('/banned')
-      } else if (err?.status === 403) {
-        navigate('/pending')
-      } else {
-        setError('Credenziali non valide.')
-      }
+      setError(err?.data?.message || 'Registrazione fallita. Riprova.')
     } finally {
       setLoading(false)
     }
@@ -103,10 +77,11 @@ export function TenantLogin() {
         )}
 
         <Card style={{ padding: 28 }}>
-          <h3 style={{ margin: '0 0 4px', fontSize: 18, fontWeight: 700 }}>Accedi al tuo account</h3>
+          <h3 style={{ margin: '0 0 4px', fontSize: 18, fontWeight: 700 }}>Crea il tuo account</h3>
           <p style={{ color: tokens.textMuted, fontSize: 13, margin: '0 0 20px' }}>{subdomain}.localhost</p>
 
           <form onSubmit={submit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <Input label="Nome" type="text" placeholder="Mario Rossi" value={name} onChange={(e) => setName(e.target.value)} />
             <Input label="Email" type="email" placeholder="tu@azienda.it" value={email} onChange={(e) => setEmail(e.target.value)} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, position: 'relative' }}>
               <label style={{ fontSize: 13, color: tokens.textMuted, fontWeight: 500 }}>Password</label>
@@ -151,44 +126,28 @@ export function TenantLogin() {
                 </button>
               </div>
             </div>
-            {location.state?.registered && (
-              <div style={{ padding: '10px 12px', background: 'rgba(34, 197, 94, 0.1)', border: '1px solid rgba(34, 197, 94, 0.3)', borderRadius: 8, color: '#16a34a', fontSize: 13 }}>
-                Registrazione completata! Ora puoi accedere.
-              </div>
-            )}
             {error && (
               <div style={{ padding: '10px 12px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 8, color: tokens.error, fontSize: 13 }}>{error}</div>
             )}
-            <Button type="submit" loading={loading} style={{ marginTop: 4 }}>Accedi</Button>
+            <Button type="submit" loading={loading} style={{ marginTop: 4 }}>Registrati</Button>
           </form>
 
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, marginTop: 20 }}>
+          <div style={{ textAlign: 'center', marginTop: 20 }}>
             <button
-              onClick={() => navigate('/register')}
+              onClick={() => navigate('/login')}
               style={{ background: 'transparent', border: 'none', color: tokens.accent, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
-            >Non hai un account? Registrati</button>
-            <button
-              onClick={() => setFindOpen(true)}
-              style={{ background: 'transparent', border: 'none', color: tokens.textMuted, fontSize: 13, cursor: 'pointer' }}
-            >Non ricordi il tuo spazio di lavoro?</button>
+            >Hai già un account? Accedi</button>
           </div>
         </Card>
-
-        <div style={{ textAlign: 'center', marginTop: 24 }}>
-          <button
-            onClick={() => navigate('/')}
-            style={{ background: 'transparent', border: 'none', color: tokens.textMuted, fontSize: 13, cursor: 'pointer', padding: 6 }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = tokens.text)}
-            onMouseLeave={(e) => (e.currentTarget.style.color = tokens.textMuted)}
-          >← Torna a ticketing.com</button>
-        </div>
       </div>
 
-      <FindWorkspaceModal open={findOpen} onClose={() => setFindOpen(false)} />
       <EmailVerifyModal
-        open={emailVerifyOpen}
-        onClose={() => setEmailVerifyOpen(false)}
+        open={verifyOpen}
+        onClose={() => setVerifyOpen(false)}
         email={email}
+        verifyOnly
+        message="Verifica la tua email per iniziare ad usare il tuo account."
+        onVerified={() => navigate('/login', { state: { registered: true } })}
       />
     </div>
   )

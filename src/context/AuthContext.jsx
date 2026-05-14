@@ -21,7 +21,7 @@ export function AuthProvider({ children }) {
     setAuthState((prev) => ({ ...prev, authChecked: true }))
 
   const clearAuth = () =>
-    setAuthState({ user: null, tenant: null, role: null, permissions: [], authChecked: false })
+    setAuthState({ user: null, tenant: null, role: null, permissions: [], authChecked: true })
 
   return (
     <AuthContext.Provider value={{ ...auth, tenantInfo, setTenantInfo, setAuth, markAuthChecked, clearAuth }}>
