@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BrandMark } from '../components/BrandMark'
 import { Button } from '../components/ui/Button'
@@ -11,46 +11,103 @@ import { tokens } from '../lib/tokens'
 // assignee: 'me' = current agent | '<name>' = other team member | null = unassigned
 // category: null = triage
 const TICKETS_INIT = [
-  { id: 1, title: 'Problema con il login',       status: 'in_progress', priority: 'high',   user: 'Mario Rossi',    assignee: 'me',      category: 'Tecnico',     date: '10 gen' },
-  { id: 2, title: 'Richiesta cambio piano',       status: 'in_progress', priority: 'medium', user: 'Giulia Bianchi', assignee: 'me',      category: 'Commerciale', date: '8 gen'  },
-  { id: 3, title: 'Bug nella dashboard',          status: 'open',        priority: 'medium', user: 'Sara Neri',      assignee: null,      category: 'Tecnico',     date: '9 gen'  },
-  { id: 4, title: 'Richiesta formazione',         status: 'open',        priority: 'low',    user: 'Pietro Verdi',   assignee: null,      category: 'Formazione',  date: '7 gen'  },
-  { id: 5, title: 'Errore nella fatturazione',    status: 'in_progress', priority: 'low',    user: 'Luca Verdi',     assignee: 'Anna R.', category: 'Commerciale', date: '6 gen'  },
-  { id: 6, title: 'Supporto integrazione API',    status: 'in_progress', priority: 'high',   user: 'Carlo Bianchi',  assignee: 'Marco V.',category: 'Tecnico',     date: '5 gen'  },
-  { id: 7, title: 'Problema non classificato',    status: 'open',        priority: 'medium', user: 'Elena Bianchi',  assignee: null,      category: null,          date: '11 gen' },
-  { id: 8, title: 'Domanda sul prodotto',         status: 'open',        priority: 'low',    user: 'Roberto Neri',   assignee: null,      category: null,          date: '11 gen' },
+  // I miei
+  { id: 1,  title: 'Problema con il login',              status: 'in_progress', priority: 'high',   user: 'Mario Rossi',      assignee: 'me',        category: 'Tecnico',      date: '10 gen' },
+  { id: 2,  title: 'Richiesta cambio piano',             status: 'in_progress', priority: 'medium', user: 'Giulia Bianchi',   assignee: 'me',        category: 'Commerciale',  date: '8 gen'  },
+  { id: 9,  title: 'Configurazione SSO aziendale',       status: 'open',        priority: 'high',   user: 'Andrea Martini',   assignee: 'me',        category: 'Tecnico',      date: '13 gen' },
+  { id: 10, title: 'Errore import CSV contatti',         status: 'in_progress', priority: 'medium', user: 'Marta Conti',      assignee: 'me',        category: 'Tecnico',      date: '12 gen' },
+  { id: 11, title: 'Accesso report avanzati negato',     status: 'open',        priority: 'low',    user: 'Francesco Neri',   assignee: 'me',        category: 'Commerciale',  date: '9 gen'  },
+  // Coda team (nessun assegnatario, con categoria)
+  { id: 3,  title: 'Bug nella dashboard analytics',      status: 'open',        priority: 'medium', user: 'Sara Neri',        assignee: null,        category: 'Tecnico',      date: '9 gen'  },
+  { id: 4,  title: 'Richiesta sessione di formazione',   status: 'open',        priority: 'low',    user: 'Pietro Verdi',     assignee: null,        category: 'Formazione',   date: '7 gen'  },
+  { id: 12, title: 'Notifiche email non arrivano',       status: 'open',        priority: 'medium', user: 'Chiara Russo',     assignee: null,        category: 'Tecnico',      date: '14 gen' },
+  { id: 13, title: 'Upgrade a piano Enterprise',         status: 'open',        priority: 'high',   user: 'Lorenzo Ferrari',  assignee: null,        category: 'Commerciale',  date: '13 gen' },
+  { id: 16, title: 'Impossibile esportare in PDF',       status: 'open',        priority: 'low',    user: 'Teresa Ricci',     assignee: null,        category: 'Tecnico',      date: '11 gen' },
+  // Team in lavorazione
+  { id: 5,  title: 'Fattura duplicata dicembre',         status: 'in_progress', priority: 'low',    user: 'Luca Verdi',       assignee: 'Anna R.',   category: 'Commerciale',  date: '6 gen'  },
+  { id: 6,  title: 'Supporto integrazione webhook API',  status: 'in_progress', priority: 'high',   user: 'Carlo Bianchi',    assignee: 'Marco V.',  category: 'Tecnico',      date: '5 gen'  },
+  { id: 14, title: 'Migrazione dati da vecchio CRM',     status: 'in_progress', priority: 'high',   user: 'Beatrice Romano',  assignee: 'Giulia F.', category: 'Tecnico',      date: '11 gen' },
+  { id: 17, title: 'Sconto contratto annuale',           status: 'in_progress', priority: 'medium', user: 'Simone Galli',     assignee: 'Anna R.',   category: 'Commerciale',  date: '10 gen' },
+  // Triage (nessuna categoria)
+  { id: 7,  title: 'Problema non classificato',          status: 'open',        priority: 'medium', user: 'Elena Bianchi',    assignee: null,        category: null,           date: '11 gen' },
+  { id: 8,  title: 'Domanda generica sul prodotto',      status: 'open',        priority: 'low',    user: 'Roberto Neri',     assignee: null,        category: null,           date: '11 gen' },
+  { id: 15, title: 'Lentezza del sistema nelle ore di punta', status: 'open',   priority: 'high',   user: 'Valentina Costa',  assignee: null,        category: null,           date: '14 gen' },
+  { id: 18, title: 'Non so dove aprire la richiesta',    status: 'open',        priority: 'low',    user: 'Dario Mele',       assignee: null,        category: null,           date: '13 gen' },
 ]
 
 const MESSAGES_INIT = {
   1: [
-    { id: 1, from: 'Mario Rossi',  agent: false, internal: false, text: 'Non riesco ad accedere al sistema da ieri mattina.',               time: '10:30' },
-    { id: 2, from: 'Me',           agent: true,  internal: true,  text: 'Verificare log di accesso per questo utente.',                      time: '10:35' },
-    { id: 3, from: 'Me',           agent: true,  internal: false, text: 'Ciao Mario, sto verificando il problema. Ti aggiorno a breve.',    time: '10:40' },
+    { id: 1, from: 'Mario Rossi', agent: false, internal: false, text: 'Non riesco ad accedere al sistema da ieri mattina. Ho provato a reimpostare la password ma non cambia nulla.',   time: '10:30' },
+    { id: 2, from: 'Me',          agent: true,  internal: true,  text: 'Controllare i log di accesso — possibile blocco per troppi tentativi falliti.',                                   time: '10:35' },
+    { id: 3, from: 'Me',          agent: true,  internal: false, text: 'Ciao Mario, sto verificando il tuo account. Nel frattempo prova a svuotare la cache del browser.',               time: '10:40' },
+    { id: 4, from: 'Mario Rossi', agent: false, internal: false, text: 'Ho svuotato la cache ma il problema persiste.',                                                                   time: '11:05' },
+    { id: 5, from: 'Me',          agent: true,  internal: false, text: 'Ho sbloccato manualmente il tuo account lato backend. Prova ora ad accedere e dimmi se funziona.',               time: '11:12' },
   ],
   2: [
-    { id: 1, from: 'Giulia Bianchi', agent: false, internal: false, text: 'Vorrei passare al piano Pro dal prossimo mese.',                  time: '09:15' },
-    { id: 2, from: 'Me',             agent: true,  internal: true,  text: 'Verificare disponibilità piano Pro per questo tenant.',           time: '09:20' },
+    { id: 1, from: 'Giulia Bianchi', agent: false, internal: false, text: 'Vorrei passare al piano Pro dal prossimo mese, è possibile avere anche uno sconto annuale?',                  time: '09:15' },
+    { id: 2, from: 'Me',             agent: true,  internal: true,  text: "Cliente su piano Base da 8 mesi — verificare se è idonea all'offerta fedeltà.",                               time: '09:20' },
+    { id: 3, from: 'Me',             agent: true,  internal: false, text: "Ciao Giulia! Certamente, stiamo valutando la tua richiesta. Ti rispondo entro oggi con un'offerta dedicata.", time: '09:25' },
   ],
   3: [
-    { id: 1, from: 'Sara Neri', agent: false, internal: false, text: "C'è un bug nella sezione report, i dati non si aggiornano.",          time: '09:00' },
+    { id: 1, from: 'Sara Neri', agent: false, internal: false, text: "I dati nella sezione analytics non si aggiornano, mostrano ancora i numeri di 3 giorni fa.",                       time: '09:00' },
+    { id: 2, from: 'Giulia F.', agent: true,  internal: true,  text: 'Problema noto in staging — potrebbe essere la cache del widget. Ticket aperto con il team Dev.',                   time: '09:45' },
   ],
   4: [
-    { id: 1, from: 'Pietro Verdi', agent: false, internal: false, text: 'Avrei bisogno di una sessione di onboarding per il mio team.',      time: '14:00' },
+    { id: 1, from: 'Pietro Verdi', agent: false, internal: false, text: 'Avrei bisogno di una sessione di onboarding per il mio team di 6 persone, preferibilmente online.',            time: '14:00' },
   ],
   5: [
-    { id: 1, from: 'Luca Verdi', agent: false, internal: false, text: 'Ho ricevuto una fattura duplicata per dicembre.',                    time: '14:00' },
-    { id: 2, from: 'Anna R.',    agent: true,  internal: false, text: 'Sto verificando con il team fatturazione.',                          time: '14:30' },
-    { id: 3, from: 'Anna R.',    agent: true,  internal: true,  text: 'Probabile bug nel sistema di rinnovo automatico. Da escalare.',      time: '14:31' },
+    { id: 1, from: 'Luca Verdi', agent: false, internal: false, text: 'Ho ricevuto una fattura duplicata per dicembre, ma ho pagato una sola volta.',                                    time: '14:00' },
+    { id: 2, from: 'Anna R.',    agent: true,  internal: false, text: 'Ciao Luca, ho aperto una verifica con il team fatturazione. Ti aggiorno entro 24 ore.',                           time: '14:30' },
+    { id: 3, from: 'Anna R.',    agent: true,  internal: true,  text: 'Probabile bug nel sistema di rinnovo automatico. Ho escalato al team Dev con priorità alta.',                     time: '14:31' },
+    { id: 4, from: 'Luca Verdi', agent: false, internal: false, text: 'Grazie, attendo aggiornamenti.',                                                                                  time: '14:40' },
   ],
   6: [
-    { id: 1, from: 'Carlo Bianchi', agent: false, internal: false, text: "Problemi con l'integrazione webhook, i payload non arrivano.",    time: '11:00' },
-    { id: 2, from: 'Marco V.',      agent: true,  internal: false, text: 'Sto analizzando i log del sistema, ti aggiorno entro oggi.',      time: '11:20' },
+    { id: 1, from: 'Carlo Bianchi', agent: false, internal: false, text: "I webhook configurati per il nostro e-commerce non ricevono i payload. L'endpoint risponde correttamente.", time: '11:00' },
+    { id: 2, from: 'Marco V.',      agent: true,  internal: true,  text: 'Verificare la configurazione SSL del loro endpoint — potrebbe essere il certificato scaduto.',              time: '11:15' },
+    { id: 3, from: 'Marco V.',      agent: true,  internal: false, text: 'Sto analizzando i log in uscita. Puoi inviarmi un esempio del payload atteso e il tuo endpoint completo?', time: '11:20' },
+    { id: 4, from: 'Carlo Bianchi', agent: false, internal: false, text: 'Endpoint: https://api.mioshop.it/hooks/ticketing — il payload atteso è in allegato al ticket.',           time: '11:35' },
   ],
   7: [
-    { id: 1, from: 'Elena Bianchi', agent: false, internal: false, text: 'Ho un problema ma non so dove segnalarlo esattamente.',           time: '08:30' },
+    { id: 1, from: 'Elena Bianchi', agent: false, internal: false, text: 'Ho un problema con un ordine ma non so esattamente dove segnalarlo, spero sia il posto giusto.',           time: '08:30' },
   ],
   8: [
-    { id: 1, from: 'Roberto Neri', agent: false, internal: false, text: 'Come funziona la funzione di esportazione dei dati?',              time: '10:00' },
+    { id: 1, from: 'Roberto Neri', agent: false, internal: false, text: "Come funziona la funzione di esportazione dei dati? Non trovo il pulsante nell'interfaccia.",              time: '10:00' },
+  ],
+  9: [
+    { id: 1, from: 'Andrea Martini', agent: false, internal: false, text: 'Dobbiamo configurare il login SSO con il nostro provider Okta. Come procediamo?',                        time: '08:15' },
+    { id: 2, from: 'Me',             agent: true,  internal: true,  text: 'Verificare se il loro piano include SSO — solo Enterprise. Controllare prima di rispondere.',            time: '08:20' },
+    { id: 3, from: 'Me',             agent: true,  internal: false, text: "Ciao Andrea! Per configurare l'SSO con Okta ho bisogno dell'Entity ID e del Metadata URL del vostro IdP.", time: '08:30' },
+  ],
+  10: [
+    { id: 1, from: 'Marta Conti', agent: false, internal: false, text: "L'import CSV si blocca sempre alla riga 450 circa senza messaggio di errore. Il file ha 1200 righe.",      time: '09:30' },
+    { id: 2, from: 'Me',          agent: true,  internal: false, text: "Ciao Marta, puoi inviarci il file CSV? Probabilmente c'è un carattere speciale in una cella.",             time: '09:45' },
+  ],
+  11: [
+    { id: 1, from: 'Francesco Neri', agent: false, internal: false, text: "Quando provo ad aprire la sezione Report Avanzati mi dice 'Accesso negato'. Il mio collega riesce.", time: '10:00' },
+  ],
+  12: [
+    { id: 1, from: 'Chiara Russo', agent: false, internal: false, text: 'Da tre giorni non ricevo più le email di notifica per i nuovi ticket. Gli altri colleghi le ricevono.',  time: '15:00' },
+  ],
+  13: [
+    { id: 1, from: 'Lorenzo Ferrari', agent: false, internal: false, text: 'Siamo interessati a passare al piano Enterprise per tutta la nostra azienda (50 utenti). Volete farci una proposta?', time: '16:00' },
+  ],
+  14: [
+    { id: 1, from: 'Beatrice Romano', agent: false, internal: false, text: 'Dobbiamo importare circa 8000 clienti dal nostro vecchio CRM. È possibile farlo in batch?',             time: '10:00' },
+    { id: 2, from: 'Giulia F.',       agent: true,  internal: true,  text: "Limite standard import: 5000 righe. Serve autorizzazione per import multipli. Chiedere all'admin.", time: '10:20' },
+    { id: 3, from: 'Giulia F.',       agent: true,  internal: false, text: "Ciao Beatrice! Sì, è possibile in due batch. Ti mando le istruzioni per il formato del file.",          time: '10:30' },
+  ],
+  15: [
+    { id: 1, from: 'Valentina Costa', agent: false, internal: false, text: "Il sistema è molto lento tra le 9 e le 11 di mattina, ci mette 10+ secondi a caricare ogni pagina.", time: '09:05' },
+  ],
+  16: [
+    { id: 1, from: 'Teresa Ricci', agent: false, internal: false, text: 'Il tasto "Esporta in PDF" non fa nulla quando lo clicco, né su Chrome né su Firefox.',                   time: '11:00' },
+  ],
+  17: [
+    { id: 1, from: 'Simone Galli', agent: false, internal: false, text: "Vorrei rinnovare per un anno anziché mensile. C'è uno sconto dedicato?",                                  time: '14:30' },
+    { id: 2, from: 'Anna R.',      agent: true,  internal: false, text: 'Ciao Simone! Sì, per il piano annuale hai il 20% di sconto rispetto al mensile. Posso inviarti il link di pagamento.', time: '15:00' },
+  ],
+  18: [
+    { id: 1, from: 'Dario Mele', agent: false, internal: false, text: 'Non capisco bene dove devo scrivere per il supporto, ho provato varie sezioni.',                             time: '12:00' },
   ],
 }
 
@@ -257,13 +314,36 @@ export function AgentDashboard() {
         </nav>
 
         {/* User + logout */}
-        <div style={{ padding: 12, margin: 12, borderRadius: 10, background: 'rgba(124,58,237,0.06)', border: `1px solid ${tokens.borderSoft}`, display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 8, flexShrink: 0, background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 14 }}>
-            {(user?.name || '?').charAt(0)}
+        <div style={{ margin: 12, borderRadius: 10, background: 'rgba(124,58,237,0.06)', border: `1px solid ${tokens.borderSoft}`, overflow: 'hidden' }}>
+          <div style={{ padding: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 8, flexShrink: 0, background: 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 14 }}>
+              {(user?.name || '?').charAt(0)}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: tokens.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.name || '—'}</div>
+              <div style={{ fontSize: 11, color: tokens.textMuted }}>Agente</div>
+            </div>
           </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: tokens.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.name || '—'}</div>
-            <button onClick={logout} style={{ background: 'none', border: 'none', color: tokens.textMuted, fontSize: 11, cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}>Esci</button>
+          <div style={{ borderTop: `1px solid ${tokens.borderSoft}` }}>
+            <button
+              onClick={logout}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center', gap: 8,
+                padding: '9px 12px', background: 'transparent', border: 'none',
+                color: tokens.textMuted, fontSize: 13, fontWeight: 500,
+                cursor: 'pointer', fontFamily: 'inherit',
+                transition: 'background 200ms, color 200ms',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; e.currentTarget.style.color = '#EF4444' }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = tokens.textMuted }}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                <polyline points="16 17 21 12 16 7"/>
+                <line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
+              Esci
+            </button>
           </div>
         </div>
       </aside>
